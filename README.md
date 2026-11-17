@@ -8,6 +8,9 @@ five UI themes. See `docs/DESIGN.md` for the signal flow and module list.
 
 ## Build
 
+CI (`.github/workflows/build.yml`) builds universal macOS (11+) and Windows x64 VST3 + standalone and runs the engine tests.
+
+
 ```
 cmake -B build -DCMAKE_BUILD_TYPE=Release            # fetches JUCE 8.0.4
 # or: cmake -B build -DJUCE_DIR=/path/to/JUCE

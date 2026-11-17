@@ -1,0 +1,59 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  mac:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure (universal, macOS 11+)
+        run: cmake -B build -G Xcode -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+      - name: Build
+        run: cmake --build build --config Release --target Driftglass_VST3 Driftglass_Standalone driftglass_tests -- -quiet
+      - name: Engine tests
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Check binaries (both architectures, macOS 11 minimum)
+        run: |
+          ART=build/Driftglass_artefacts/Release
+          lipo -info "$ART/VST3/Driftglass.vst3/Contents/MacOS/Driftglass"
+          otool -l "$ART/VST3/Driftglass.vst3/Contents/MacOS/Driftglass" | grep -A3 LC_BUILD_VERSION | head -4
+      - name: Ad-hoc sign and zip
+        run: |
+          ART=build/Driftglass_artefacts/Release
+          codesign --force --deep --sign - "$ART/VST3/Driftglass.vst3"
+          codesign --force --deep --sign - "$ART/Standalone/Driftglass.app"
+          mkdir dist
+          ditto -c -k --keepParent "$ART/VST3/Driftglass.vst3" dist/Driftglass-mac-VST3.zip
+          ditto -c -k --keepParent "$ART/Standalone/Driftglass.app" dist/Driftglass-mac-Standalone.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Driftglass-mac
+          path: dist/*.zip
+
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -B build -G "Visual Studio 17 2022" -A x64
+      - name: Build
+        run: cmake --build build --config Release --target Driftglass_VST3 Driftglass_Standalone driftglass_tests
+      - name: Engine tests
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Zip
+        shell: pwsh
+        run: |
+          $art = "build/Driftglass_artefacts/Release"
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Path "$art/VST3/Driftglass.vst3" -DestinationPath dist/Driftglass-windows-VST3.zip
+          Compress-Archive -Path "$art/Standalone/Driftglass.exe" -DestinationPath dist/Driftglass-windows-Standalone.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Driftglass-windows
+          path: dist/*.zip

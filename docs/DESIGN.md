@@ -47,6 +47,13 @@ Theme and window size are saved with the session.
 - `Source/engine`: plain C++17, no JUCE: DSP building blocks, modules, parameter table, presets. Unit tested in `tests/`.
 - `Source/plugin`: JUCE processor (APVTS built from the engine's parameter table) and editor.
 
+## Decisions taken for v0.1
+
+- Name: Driftglass (working name, easy to change: `PRODUCT_NAME` in CMakeLists.txt and the title in the editor).
+- Double/harmony voices use fixed intervals. A key-aware harmoniser (pitch detection + scale) is planned for v2.
+- Mac and Windows builds run in GitHub Actions (`.github/workflows/build.yml`) once the repo is pushed;
+  installers come with the other products' packaging later.
+
 ## Later
 
 Scale-aware harmoniser (needs pitch detection), oversampled drive, reverb type crossfade (currently a short fade on switch),
