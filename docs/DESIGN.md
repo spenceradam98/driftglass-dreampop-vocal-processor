@@ -57,4 +57,4 @@ Theme and window size are saved with the session.
 ## Later
 
 Scale-aware harmoniser (needs pitch detection), oversampled drive, reverb type crossfade (currently a short fade on switch),
-installers, CI builds for macOS and Windows.
+installers.
